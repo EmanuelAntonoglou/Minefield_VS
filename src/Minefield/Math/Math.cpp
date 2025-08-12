@@ -11,6 +11,6 @@ namespace math
 
     int getRandomNumber(int from, int to)
     {
-        return ((rand() % to+1) + from);
+        return ((rand() % (to + 1)) + from);
     }
 }

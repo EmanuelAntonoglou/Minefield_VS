@@ -1,6 +1,6 @@
-#include <Game/Player.h>
-#include <Console/Output.h>
-#include <Console/Input.h>
+#include <Minefield/Game/Player.h>
+#include <Minefield/Console/Output.h>
+#include <Minefield/Console/Input.h>
 
 namespace game
 {

@@ -22,13 +22,17 @@ TEST(Range, is_value_outside_uint_range)
     EXPECT_FALSE(math::isUIntInRange(num, min, max));
 }
 
-TEST(Prueba, probando)
+TEST(Random, is_random_value_inside_range)
 {
-    bool mibool = true;
-    if (math::getRandomNumber(1, 2) < 3)
+    unsigned int from = 0;
+    unsigned int to = 5;
+
+    for (int i = 0; i < 1000; ++i)
     {
-        EXPECT_FALSE(false);
+        unsigned int randNum = math::getRandomNumber(from, to);
+
+        EXPECT_GE(randNum, from);
+        EXPECT_LE(randNum, to);
     }
-    
 }
 }

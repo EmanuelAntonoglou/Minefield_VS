@@ -4,6 +4,88 @@
 #include <algorithm>
 #include <Minefield/Math/Math.h>
 
+namespace game::utils::stateGameUpdate
+{
+bool areEnoughTilesToPlay(GameContext const& gameContext)
+{
+    unsigned int avaliableTiles = gameContext.board.getTilesOfType(TileType::Empty).size();
+    unsigned int playersQuantity = gameContext.players.size();
+    unsigned int guessesforNextRound = calculateGuessesAverage(gameContext);
+    return (avaliableTiles > (playersQuantity * guessesforNextRound));
+}
+
+unsigned int calculateGuessesAverage(GameContext const& gameContext)
+{
+    if (gameContext.players.empty())
+    {
+        return 0;
+    }
+
+    unsigned int average = 0;
+    for (auto const& player : gameContext.players)
+    {
+        average += player.data.minesLeft();
+    }
+
+    return (average / gameContext.players.size());
+}
+
+bool validateCoordinates(std::vector<Coordinate> const& coordinates, std::string const& coordinateType, unsigned int coordinatesToValidate, GameContext const& gameContext)
+{
+    if (coordinates.empty())
+    {
+        console::output::println("X No valid coordinates. Please use this format: X,Y X,Y...");
+        return false;
+    }
+    else if (coordinates.size() < coordinatesToValidate)
+    {
+        console::output::println("X Too few coordinates. Use your ", coordinatesToValidate, ' ', coordinateType);
+        return false;
+    }
+    else if (coordinates.size() > coordinatesToValidate)
+    {
+        console::output::println("X Too many coordinates. You have only ", coordinatesToValidate, ' ', coordinateType);
+        return false;
+    }
+
+    for (auto const& coordinate : coordinates)
+    {
+        TileType const* tile = utils::board::getTile(Coordinate{coordinate.x, coordinate.y}, gameContext.board.matrix(), gameContext.board.dimensions());
+        if (tile == nullptr)
+        {
+            console::output::println("X Some ", coordinateType, " are placed beyond board dimensions. Please place them between x(1,",
+                gameContext.board.dimensions().x, ") and y(1,", gameContext.board.dimensions().y, ")");
+            return false;
+        }
+        else if (*tile == TileType::Taken || *tile == TileType::Bomb)
+        {
+            console::output::println("X Some ", coordinateType, " are placed in taken or exploded tiles. Please place in free spaces");
+            return false;
+        }
+    }
+    return true;
+}
+
+std::vector<Coordinate> getPlayerCoordinatesInput(std::string const& playerName, std::string const& coordinateType, unsigned int coordinatesToValidate, GameContext const& gameContext)
+{
+    bool inputValidated = false;
+    std::string inputStr;
+    std::vector<Coordinate> coordinates;
+
+    console::output::println("Set your ", coordinateType, " in this format: X,Y X,Y...");
+    while (!inputValidated)
+    {
+        gameContext.board.print();
+        console::output::print("> ", playerName, "'s " + coordinateType, " (", coordinatesToValidate, " Left): ");
+        inputStr = console::input::readString();
+        coordinates = parseCoordinates(inputStr);
+        console::output::clearBuffer();
+        inputValidated = utils::stateGameUpdate::validateCoordinates(coordinates, coordinateType, coordinatesToValidate, gameContext);
+    }
+    return coordinates;
+}
+} // namespace game::utils::stateGameUpdate
+
 namespace game
 {
     std::unique_ptr<State> StateGameUpdate::execute()
@@ -50,7 +132,7 @@ namespace game
             std::vector<Coordinate> minesCoordinates;
             if (!player.data.isAI())
             {
-                minesCoordinates = getPlayerCoordinatesInput(player.data.name(), "mines", player.data.minesLeft());
+                minesCoordinates = utils::stateGameUpdate::getPlayerCoordinatesInput(player.data.name(), "mines", player.data.minesLeft(), mGameContext);
             }
             else 
             {
@@ -70,14 +152,14 @@ namespace game
 
     void StateGameUpdate::phaseSetGuesses()
     {
-        unsigned int guessesAvr = calculateGuessesAverage();
+        unsigned int guessesAvr = utils::stateGameUpdate::calculateGuessesAverage(mGameContext);
         
         for (auto &player : mGameContext.players)
         {
             std::vector<Coordinate> guessesCoordinates;
             if (!player.data.isAI())
             {
-                guessesCoordinates = getPlayerCoordinatesInput(player.data.name(), "guesses", guessesAvr);
+                guessesCoordinates = utils::stateGameUpdate::getPlayerCoordinatesInput(player.data.name(), "guesses", guessesAvr, mGameContext);
             }
             else 
             {
@@ -114,7 +196,7 @@ namespace game
         }
     }
 
-    bool StateGameUpdate::phaseCheckCollisions(PlayersMines const& playersMines, PlayersGuesses const& playersGuesses, std::vector<Player>& playersToRemove)
+    int StateGameUpdate::phaseCheckCollisions(PlayersMines const& playersMines, PlayersGuesses const& playersGuesses, std::vector<Player>& playersToRemove)
     {
         unsigned int roundHits = 0;
         for (auto const& guess : playersGuesses)
@@ -163,7 +245,7 @@ namespace game
                 console::output::println("Game Ended: Draw");
                 return true;
             }
-            else if (!areEnoughTilesToPlay())
+            else if (!utils::stateGameUpdate::areEnoughTilesToPlay(mGameContext))
             {
                 console::output::println("Not enough tiles to play");
                 console::output::println("Game Ended: Draw");
@@ -173,82 +255,4 @@ namespace game
         }
         return false;
     }
-
-    bool StateGameUpdate::areEnoughTilesToPlay()
-    {
-        unsigned int avaliableTiles = mGameContext.board.getTilesOfType(TileType::Empty).size();
-        unsigned int playersQuantity = mGameContext.players.size();
-        unsigned int guessesforNextRound = calculateGuessesAverage();
-        return (avaliableTiles > (playersQuantity * guessesforNextRound));
-    }
-
-    std::vector<Coordinate> StateGameUpdate::getPlayerCoordinatesInput(std::string const& playerName, std::string const& coordinateType, unsigned int coordinatesToValidate)
-    {
-        bool inputValidated = false;
-        std::string inputStr;
-        std::vector<Coordinate> coordinates;
-        
-        console::output::println("Set your ", coordinateType, " in this format: X,Y X,Y...");
-        while (!inputValidated)
-        {
-            mGameContext.board.print();
-            console::output::print("> ", playerName, "'s " + coordinateType, " (", coordinatesToValidate, " Left): ");
-            inputStr = console::input::readString();
-            coordinates = parseCoordinates(inputStr);
-            console::output::clearBuffer();
-            inputValidated = validateCoordinates(coordinates, coordinateType, coordinatesToValidate);
-        }
-        return coordinates;
-    }
-
-    bool StateGameUpdate::validateCoordinates(std::vector<Coordinate> const& coordinates, std::string const& coordinateType, unsigned int coordinatesToValidate)
-    {
-        if (coordinates.empty())
-        {
-            console::output::println("X No valid coordinates. Please use this format: X,Y X,Y...");
-            return false;
-        }
-        else if (coordinates.size() < coordinatesToValidate)
-        {
-            console::output::println("X Too few coordinates. Use your ", coordinatesToValidate, ' ', coordinateType);
-            return false;
-        }
-        else if (coordinates.size() > coordinatesToValidate)
-        {
-            console::output::println("X Too many coordinates. You have only ", coordinatesToValidate, ' ', coordinateType);
-            return false;
-        }
-
-        for (auto const &coordinate : coordinates)
-        {
-            const TileType *tile = mGameContext.board.getTile(Coordinate{coordinate.x, coordinate.y});
-            if (tile == nullptr)
-            {
-                console::output::println("X Some ", coordinateType, " are placed beyond board dimensions. Please place them between x(1,", mGameContext.board.dimensions().x, ") and y(1,", mGameContext.board.dimensions().y, ")");
-                return false;
-            }
-            else if (*tile == TileType::Taken || *tile == TileType::Bomb)
-            {
-                console::output::println("X Some ", coordinateType, " are placed in taken or exploded tiles. Please place in free spaces");
-                return false;
-            }
-        }
-        return true;
-    }
-
-    unsigned int StateGameUpdate::calculateGuessesAverage()
-    {
-        if (mGameContext.players.empty())
-        {
-            return 0;
-        }
-
-        unsigned int average = 0;
-        for (auto const& player : mGameContext.players)
-        {
-            average += player.data.minesLeft();
-        }
-
-        return (average/mGameContext.players.size());
-    }
-}
+} // namespace game

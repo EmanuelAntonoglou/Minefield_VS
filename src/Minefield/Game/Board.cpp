@@ -2,32 +2,35 @@
 #include <Minefield/Console/Output.h>
 #include <Minefield/Console/Input.h>
 
+namespace game::utils::board
+{
+bool isValidCoordinate(Coordinate const& tileCoordinate, TileMatrix const& matrix, BoardDimensions const& boardDimensions)
+{
+    return !matrix.empty() && tileCoordinate.x >= 0 && tileCoordinate.x < boardDimensions.x && tileCoordinate.y >= 0 && tileCoordinate.y < boardDimensions.y;
+}
+
+TileType const* getTile(Coordinate const& tileCoordinate, TileMatrix const& matrix, BoardDimensions const& boardDimensions)
+{
+    if (!isValidCoordinate(tileCoordinate, matrix, boardDimensions))
+    {
+        return nullptr;
+    }
+    return &matrix[tileCoordinate.x][tileCoordinate.y].tileType;
+}
+} // namespace game::utils::board
+
 namespace game
 {
-    Board::Board(TileMatrix matrix, BoardDimensions boardDimensions) : mMatrix(matrix), mBoardDimensions(boardDimensions) {};
+    using namespace utils::board;
 
-    const TileType *Board::getTile(Coordinate const &tileCoordinate)
-    {
-        if (!isValidCoordinate(tileCoordinate))
-        {
-            return nullptr;
-        }
-        return &mMatrix[tileCoordinate.x][tileCoordinate.y].tileType;
-    }
+    Board::Board(TileMatrix matrix, BoardDimensions boardDimensions) : mMatrix(matrix), mBoardDimensions(boardDimensions) {};
 
     void Board::changeTileType(Coordinate const& tileCoordinate, TileType const& tileType)
     {
-        if (isValidCoordinate(tileCoordinate))
+        if (isValidCoordinate(tileCoordinate, mMatrix, mBoardDimensions))
         {
             mMatrix[tileCoordinate.x][tileCoordinate.y].tileType = tileType;
         }
-    }
-
-    bool Board::isValidCoordinate(Coordinate const& tileCoordinate)
-    {
-        return !mMatrix.empty() &&
-                tileCoordinate.x >= 0 && tileCoordinate.x < mBoardDimensions.x &&
-                tileCoordinate.y >= 0 && tileCoordinate.y < mBoardDimensions.y;
     }
 
     void Board::print() const

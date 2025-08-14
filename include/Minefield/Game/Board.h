@@ -23,30 +23,34 @@ namespace game
     struct Tile
     {
         Tile() = default;
-        Tile(TileType tileType, Coordinate coordinate) : tileType(tileType), coordinate(coordinate) {};
+        Tile(TileType const& tileType, Coordinate const& coordinate) : tileType(tileType), coordinate(coordinate) {};
 
         TileType tileType;
         Coordinate coordinate;
     };
 
+    namespace utils::board
+    {
+        using TileMatrix = std::vector<std::vector<Tile>>;
+        bool isValidCoordinate(Coordinate const& tileCoordinate, TileMatrix const& matrix, BoardDimensions const& boardDimensions);
+        TileType const* getTile(Coordinate const& tileCoordinate, TileMatrix const& matrix, BoardDimensions const& boardDimensions);
+    } // namespace board
+    
     class Board
     {
-        
     public:
-        using TileMatrix = std::vector<std::vector<Tile>>;
-
         Board() = default;
-        Board(TileMatrix matrix, BoardDimensions boardDimensions);
+        Board(utils::board::TileMatrix matrix, BoardDimensions boardDimensions);
 
+        inline BoardDimensions const& dimensions() const noexcept { return mBoardDimensions; }
+        inline utils::board::TileMatrix matrix() const { return mMatrix; }
         void print() const;
-        const BoardDimensions& dimensions() const noexcept { return mBoardDimensions; }
-        const TileType *getTile(Coordinate const &tileCoordinate);
         void changeTileType(Coordinate const& tileCoordinate, TileType const& tileType);
-        bool isValidCoordinate(Coordinate const& tileCoordinate);
         std::vector<Tile> getTilesOfType(TileType const& tileType) const;
 
     private:
         BoardDimensions mBoardDimensions;
-        TileMatrix mMatrix;
+        utils::board::TileMatrix mMatrix;
     };
+    
 }

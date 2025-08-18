@@ -3,7 +3,7 @@
 
 namespace game
 {
-    std::unique_ptr<State> StateMainMenu::execute()
+    std::unique_ptr<State> StateMainMenu::execute(GameContext& gameContext)
     {
         console::output::println("[MAIN MENU]");
         console::output::println("Welcome to Game! Select an option to continue:");
@@ -18,13 +18,13 @@ namespace game
         switch (userSelection)
         {
         case UserSelection::INITIALIZE_GAME:
-            nextState = std::make_unique<StateInitializeGame>(mGameContext);
+            nextState = std::make_unique<StateInitializeGame>();
             break;
         case UserSelection::QUIT:
             nextState = nullptr;
             break;
         default:
-            nextState = std::make_unique<StateMainMenu>(mGameContext);
+            nextState = std::make_unique<StateMainMenu>();
             break;
         }
         return nextState;

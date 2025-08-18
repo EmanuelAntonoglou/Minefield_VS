@@ -6,8 +6,7 @@ namespace game
     class StateMainMenu : public State
     {
         public:
-            StateMainMenu(GameContext gameContext) : State(gameContext) {}
-            std::unique_ptr<State> execute() override;
+            std::unique_ptr<State> execute(GameContext& gameContext) override;
             enum class UserSelection
             {
                 INITIALIZE_GAME = 1,

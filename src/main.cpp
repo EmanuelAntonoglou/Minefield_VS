@@ -6,11 +6,11 @@ int main()
 {
     math::initializeRandomSeed();
     game::GameContext gameContext;
-    std::unique_ptr<game::State> currentState = std::make_unique<game::StateMainMenu>(gameContext);
+    std::unique_ptr<game::State> currentState = std::make_unique<game::StateMainMenu>();
 
     while (currentState)
     {
-        currentState = currentState->execute();
+        currentState = currentState->execute(gameContext);
     }
 
     return 0;

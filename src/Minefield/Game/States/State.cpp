@@ -2,5 +2,5 @@
 
 namespace game
 {
-    State::State(GameContext gameContext) : mGameContext(gameContext) {}
+    //State::State(GameContext gameContext) : gameContext(gameContext) {}
 }

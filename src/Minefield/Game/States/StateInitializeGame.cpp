@@ -95,17 +95,17 @@ namespace game
 {
     using namespace utils::stateInitializeGame;
 
-    std::unique_ptr<State> StateInitializeGame::execute()
+    std::unique_ptr<State> StateInitializeGame::execute(GameContext& gameContext)
     {
         console::output::println("[GAME CONFIG]");
 
         Board board = createBoard();
         unsigned int minesPerPlayer = getMinesPerPlayer();
         std::vector<Player> players = createPlayers(minesPerPlayer);
-        mGameContext = GameContext(board, minesPerPlayer, players);
+        gameContext = GameContext(board, minesPerPlayer, players);
 
         console::input::pressEnterToContinue();
 
-        return std::make_unique<StateGameUpdate>(mGameContext);
+        return std::make_unique<StateGameUpdate>();
     }
 }

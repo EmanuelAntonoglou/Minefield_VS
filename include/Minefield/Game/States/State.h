@@ -9,12 +9,7 @@ namespace game
     class State
     {
     public:
-        State() = default;
-        explicit State(GameContext gameContext);
         virtual ~State() = default;
-        virtual std::unique_ptr<State> execute() = 0;
-
-    protected:
-        GameContext mGameContext;
+        virtual std::unique_ptr<State> execute(GameContext& gameContext) = 0;
     };
 }

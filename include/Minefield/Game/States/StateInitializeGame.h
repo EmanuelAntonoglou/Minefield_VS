@@ -6,8 +6,7 @@ namespace game
     class StateInitializeGame : public State
     {
         public:
-            StateInitializeGame(GameContext gameContext) : State(gameContext) {}
-            std::unique_ptr<State> execute() override;
+            std::unique_ptr<State> execute(GameContext& gameContext) override;
     };
 
     namespace utils::stateInitializeGame

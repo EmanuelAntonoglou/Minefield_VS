@@ -1,14 +1,51 @@
+#include <Minefield/Console/Input.h>
+#include <Minefield/Console/Output.h>
 #include <Minefield/Game/States/StateGameUpdate.h>
 #include <Minefield/Game/States/StateMainMenu.h>
-#include <Minefield/Game/State.h>
-#include <vector>
-#include <algorithm>
 #include <Minefield/Math/Math.h>
 
-namespace game
+#include <algorithm>
+#include <vector>
+
+namespace game::state::gameUpdate
 {
-namespace stateGameUpdate
+NextState execute(GameContext& gameContext)
 {
+    bool hasGameEnded = false;
+    unsigned int roundCount = 1;
+    int roundHits = -1;
+    PlayersMines playersMines;
+    PlayersGuesses playersGuesses;
+    PlayersToRemove playersToRemove;
+
+    if (gameUpdate::phaseCheckGameState(gameContext, roundHits, playersToRemove))
+    {
+        return mainMenu::execute(gameContext);
+    }
+
+    console::output::println("[GAME STARTED]");
+    while (!hasGameEnded)
+    {
+        console::output::println("[Round ", roundCount, ']');
+
+        gameUpdate::phaseSetMines(gameContext);
+        gameUpdate::phaseSetGuesses(gameContext);
+        gameUpdate::phaseSetTakenBoardTiles(gameContext, playersMines, playersGuesses);
+        roundHits = gameUpdate::phaseCheckCollisions(gameContext, playersMines, playersGuesses, playersToRemove);
+        hasGameEnded = gameUpdate::phaseCheckGameState(gameContext, roundHits, playersToRemove);
+
+        console::input::pressEnterToContinue();
+
+        playersMines.clear();
+        playersGuesses.clear();
+        playersToRemove.clear();
+        roundHits = 0;
+        roundCount++;
+    }
+
+    return mainMenu::execute(gameContext);
+}
+
 bool areEnoughTilesToPlay(GameContext const& gameContext)
 {
     unsigned int avaliableTiles = gameContext.board.getTilesOfType(TileType::Empty).size();
@@ -33,10 +70,7 @@ unsigned int calculateGuessesAverage(GameContext const& gameContext)
     return (average / gameContext.players.size());
 }
 
-bool validateCoordinates(std::vector<Coordinate> const& coordinates,
-    std::string const& coordinateType,
-    unsigned int coordinatesToValidate,
-    GameContext const& gameContext)
+bool validateCoordinates(std::vector<Coordinate> const& coordinates, std::string const& coordinateType, unsigned int coordinatesToValidate, GameContext const& gameContext)
 {
     if (coordinates.empty())
     {
@@ -72,10 +106,7 @@ bool validateCoordinates(std::vector<Coordinate> const& coordinates,
     return true;
 }
 
-std::vector<Coordinate> getPlayerCoordinatesInput(std::string const& playerName,
-    std::string const& coordinateType,
-    unsigned int coordinatesToValidate,
-    GameContext const& gameContext)
+std::vector<Coordinate> getPlayerCoordinatesInput(std::string const& playerName, std::string const& coordinateType, unsigned int coordinatesToValidate, GameContext const& gameContext)
 {
     bool inputValidated = false;
     std::string inputStr;
@@ -89,7 +120,7 @@ std::vector<Coordinate> getPlayerCoordinatesInput(std::string const& playerName,
         inputStr = console::input::readString();
         coordinates = parseCoordinates(inputStr);
         console::output::clearBuffer();
-        inputValidated = stateGameUpdate::validateCoordinates(coordinates, coordinateType, coordinatesToValidate, gameContext);
+        inputValidated = state::gameUpdate::validateCoordinates(coordinates, coordinateType, coordinatesToValidate, gameContext);
     }
     return coordinates;
 }
@@ -101,7 +132,7 @@ void phaseSetMines(GameContext& gameContext)
         std::vector<Coordinate> minesCoordinates;
         if (!player.data.isAI())
         {
-            minesCoordinates = stateGameUpdate::getPlayerCoordinatesInput(player.data.name(), "mines", player.data.minesLeft(), gameContext);
+            minesCoordinates = state::gameUpdate::getPlayerCoordinatesInput(player.data.name(), "mines", player.data.minesLeft(), gameContext);
         }
         else
         {
@@ -121,14 +152,14 @@ void phaseSetMines(GameContext& gameContext)
 
 void phaseSetGuesses(GameContext& gameContext)
 {
-    unsigned int guessesAvr = stateGameUpdate::calculateGuessesAverage(gameContext);
+    unsigned int guessesAvr = state::gameUpdate::calculateGuessesAverage(gameContext);
 
     for (auto& player : gameContext.players)
     {
         std::vector<Coordinate> guessesCoordinates;
         if (!player.data.isAI())
         {
-            guessesCoordinates = stateGameUpdate::getPlayerCoordinatesInput(player.data.name(), "guesses", guessesAvr, gameContext);
+            guessesCoordinates = state::gameUpdate::getPlayerCoordinatesInput(player.data.name(), "guesses", guessesAvr, gameContext);
         }
         else
         {
@@ -146,7 +177,7 @@ void phaseSetGuesses(GameContext& gameContext)
     }
 }
 
-void phaseSetTakenBoardTiles(GameContext& gameContext, state::PlayersMines& playersMines, state::PlayersGuesses& playersGuesses)
+void phaseSetTakenBoardTiles(GameContext& gameContext, PlayersMines& playersMines, PlayersGuesses& playersGuesses)
 {
     for (auto& player : gameContext.players)
     {
@@ -165,10 +196,7 @@ void phaseSetTakenBoardTiles(GameContext& gameContext, state::PlayersMines& play
     }
 }
 
-int phaseCheckCollisions(GameContext& gameContext,
-    state::PlayersMines const& playersMines,
-    state::PlayersGuesses const& playersGuesses,
-    state::PlayersToRemove& playersToRemove)
+int phaseCheckCollisions(GameContext& gameContext, PlayersMines const& playersMines, PlayersGuesses const& playersGuesses, PlayersToRemove& playersToRemove)
 {
     unsigned int roundHits = 0;
     for (auto const& guess : playersGuesses)
@@ -219,7 +247,7 @@ bool phaseCheckGameState(GameContext& gameContext, int roundHits, std::vector<Pl
             console::output::println("Game Ended: Draw");
             return true;
         }
-        else if (!stateGameUpdate::areEnoughTilesToPlay(gameContext))
+        else if (!state::gameUpdate::areEnoughTilesToPlay(gameContext))
         {
             console::output::println("Not enough tiles to play");
             console::output::println("Game Ended: Draw");
@@ -229,5 +257,4 @@ bool phaseCheckGameState(GameContext& gameContext, int roundHits, std::vector<Pl
     }
     return false;
 }
-} // namespace stateGameUpdate
-}
+} // namespace game::state::gameUpdate

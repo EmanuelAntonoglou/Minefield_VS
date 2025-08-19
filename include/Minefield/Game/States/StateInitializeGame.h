@@ -1,10 +1,13 @@
 #pragma once
-#include <Minefield/Game/State.h>
+#include <Minefield/Game/GameContext.h>
+#include <Minefield/Game/Board.h>
+#include <Minefield/Game/Player.h>
 
-namespace game::stateInitializeGame
+namespace game::state::initializeGame
 {
+NextState execute(GameContext& gameContext);
 Board createBoard();
 unsigned int getMinesPerPlayer();
 unsigned int getValidatedIntFromRange(std::string const& inputMsg, unsigned int min, unsigned int max);
-std::vector<game::Player> createPlayers(unsigned int minesPerPlayer);
-} // namespace game::stateInitializeGame
+std::vector<Player> createPlayers(unsigned int minesPerPlayer);
+} // namespace game::state::initializeGame

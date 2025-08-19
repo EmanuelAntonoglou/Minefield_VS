@@ -1,17 +1,13 @@
 #pragma once
-#include "State.h"
+#include <Minefield/Game/GameContext.h>
 
-namespace game
+namespace game::state::mainMenu
 {
-    class StateMainMenu : public State
-    {
-        public:
-            StateMainMenu(GameContext gameContext) : State(gameContext) {}
-            std::unique_ptr<State> execute() override;
-            enum class UserSelection
-            {
-                INITIALIZE_GAME = 1,
-                QUIT = 2
-            };
-    };
-}
+NextState execute(GameContext& gameContext);
+
+enum class UserSelection
+{
+    INITIALIZE_GAME = 1,
+    QUIT = 2
+};
+} // namespace game::state::mainMenu

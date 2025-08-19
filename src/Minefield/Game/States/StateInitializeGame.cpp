@@ -1,9 +1,25 @@
-#include <Minefield/Game/States/StateInitializeGame.h>
-#include <Minefield/Game/States/StateGameUpdate.h>
+#include <Minefield/Console/Input.h>
+#include <Minefield/Console/Output.h>
 #include <Minefield/Math/Math.h>
+#include <Minefield/Game/States/StateGameUpdate.h>
+#include <Minefield/Game/States/StateInitializeGame.h>
 
-namespace game::utils::stateInitializeGame
+namespace game::state::initializeGame
 {
+NextState execute(GameContext& gameContext)
+{
+    console::output::println("[GAME CONFIG]");
+
+    Board board = initializeGame::createBoard();
+    unsigned int minesPerPlayer = initializeGame::getMinesPerPlayer();
+    std::vector<Player> players = initializeGame::createPlayers(minesPerPlayer);
+    gameContext = GameContext(board, minesPerPlayer, players);
+
+    console::input::pressEnterToContinue();
+
+    return gameUpdate::execute(gameContext);
+}
+
 unsigned int getMinesPerPlayer()
 {
     constexpr unsigned int kMinMinesSize = 1;
@@ -38,8 +54,8 @@ Board createBoard()
 {
     constexpr unsigned int kMinAxisSize = 2;
     constexpr unsigned int kMaxAxisSize = 50;
-    unsigned int heightValue = stateInitializeGame::getValidatedIntFromRange("> Board Height: ", kMinAxisSize, kMaxAxisSize);
-    unsigned int widthValue = stateInitializeGame::getValidatedIntFromRange("> Board Width: ", kMinAxisSize, kMaxAxisSize);
+    unsigned int heightValue = initializeGame::getValidatedIntFromRange("> Board Height: ", kMinAxisSize, kMaxAxisSize);
+    unsigned int widthValue = initializeGame::getValidatedIntFromRange("> Board Width: ", kMinAxisSize, kMaxAxisSize);
 
     game::utils::board::TileMatrix mMatrix{heightValue, std::vector<Tile>(widthValue)};
     for (unsigned int i = 0; i < heightValue; i++)
@@ -89,23 +105,4 @@ std::vector<Player> createPlayers(unsigned int minesPerPlayer)
     console::output::println();
     return players;
 }
-} // namespace utils::stateInitializeGame
-
-namespace game
-{
-    using namespace utils::stateInitializeGame;
-
-    std::unique_ptr<State> StateInitializeGame::execute()
-    {
-        console::output::println("[GAME CONFIG]");
-
-        Board board = createBoard();
-        unsigned int minesPerPlayer = getMinesPerPlayer();
-        std::vector<Player> players = createPlayers(minesPerPlayer);
-        mGameContext = GameContext(board, minesPerPlayer, players);
-
-        console::input::pressEnterToContinue();
-
-        return std::make_unique<StateGameUpdate>(mGameContext);
-    }
-}
+} // namespace game::state::initializeGame

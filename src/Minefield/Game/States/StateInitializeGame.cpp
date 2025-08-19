@@ -2,7 +2,7 @@
 #include <Minefield/Game/States/StateGameUpdate.h>
 #include <Minefield/Math/Math.h>
 
-namespace game::utils::stateInitializeGame
+namespace game::stateInitializeGame
 {
 unsigned int getMinesPerPlayer()
 {
@@ -90,22 +90,3 @@ std::vector<Player> createPlayers(unsigned int minesPerPlayer)
     return players;
 }
 } // namespace utils::stateInitializeGame
-
-namespace game
-{
-    using namespace utils::stateInitializeGame;
-
-    std::unique_ptr<State> StateInitializeGame::execute(GameContext& gameContext)
-    {
-        console::output::println("[GAME CONFIG]");
-
-        Board board = createBoard();
-        unsigned int minesPerPlayer = getMinesPerPlayer();
-        std::vector<Player> players = createPlayers(minesPerPlayer);
-        gameContext = GameContext(board, minesPerPlayer, players);
-
-        console::input::pressEnterToContinue();
-
-        return std::make_unique<StateGameUpdate>();
-    }
-}

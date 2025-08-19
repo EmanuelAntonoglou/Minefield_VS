@@ -1,10 +1,13 @@
 #include <Minefield/Game/States/StateGameUpdate.h>
 #include <Minefield/Game/States/StateMainMenu.h>
+#include <Minefield/Game/State.h>
 #include <vector>
 #include <algorithm>
 #include <Minefield/Math/Math.h>
 
-namespace game::utils::stateGameUpdate
+namespace game
+{
+namespace stateGameUpdate
 {
 bool areEnoughTilesToPlay(GameContext const& gameContext)
 {
@@ -30,7 +33,10 @@ unsigned int calculateGuessesAverage(GameContext const& gameContext)
     return (average / gameContext.players.size());
 }
 
-bool validateCoordinates(std::vector<Coordinate> const& coordinates, std::string const& coordinateType, unsigned int coordinatesToValidate, GameContext const& gameContext)
+bool validateCoordinates(std::vector<Coordinate> const& coordinates,
+    std::string const& coordinateType,
+    unsigned int coordinatesToValidate,
+    GameContext const& gameContext)
 {
     if (coordinates.empty())
     {
@@ -66,7 +72,10 @@ bool validateCoordinates(std::vector<Coordinate> const& coordinates, std::string
     return true;
 }
 
-std::vector<Coordinate> getPlayerCoordinatesInput(std::string const& playerName, std::string const& coordinateType, unsigned int coordinatesToValidate, GameContext const& gameContext)
+std::vector<Coordinate> getPlayerCoordinatesInput(std::string const& playerName,
+    std::string const& coordinateType,
+    unsigned int coordinatesToValidate,
+    GameContext const& gameContext)
 {
     bool inputValidated = false;
     std::string inputStr;
@@ -80,19 +89,19 @@ std::vector<Coordinate> getPlayerCoordinatesInput(std::string const& playerName,
         inputStr = console::input::readString();
         coordinates = parseCoordinates(inputStr);
         console::output::clearBuffer();
-        inputValidated = utils::stateGameUpdate::validateCoordinates(coordinates, coordinateType, coordinatesToValidate, gameContext);
+        inputValidated = stateGameUpdate::validateCoordinates(coordinates, coordinateType, coordinatesToValidate, gameContext);
     }
     return coordinates;
 }
 
-void utils::stateGameUpdate::phaseSetMines(GameContext& gameContext)
+void phaseSetMines(GameContext& gameContext)
 {
     for (auto& player : gameContext.players)
     {
         std::vector<Coordinate> minesCoordinates;
         if (!player.data.isAI())
         {
-            minesCoordinates = utils::stateGameUpdate::getPlayerCoordinatesInput(player.data.name(), "mines", player.data.minesLeft(), gameContext);
+            minesCoordinates = stateGameUpdate::getPlayerCoordinatesInput(player.data.name(), "mines", player.data.minesLeft(), gameContext);
         }
         else
         {
@@ -110,16 +119,16 @@ void utils::stateGameUpdate::phaseSetMines(GameContext& gameContext)
     }
 }
 
-void utils::stateGameUpdate::phaseSetGuesses(GameContext& gameContext)
+void phaseSetGuesses(GameContext& gameContext)
 {
-    unsigned int guessesAvr = utils::stateGameUpdate::calculateGuessesAverage(gameContext);
+    unsigned int guessesAvr = stateGameUpdate::calculateGuessesAverage(gameContext);
 
     for (auto& player : gameContext.players)
     {
         std::vector<Coordinate> guessesCoordinates;
         if (!player.data.isAI())
         {
-            guessesCoordinates = utils::stateGameUpdate::getPlayerCoordinatesInput(player.data.name(), "guesses", guessesAvr, gameContext);
+            guessesCoordinates = stateGameUpdate::getPlayerCoordinatesInput(player.data.name(), "guesses", guessesAvr, gameContext);
         }
         else
         {
@@ -137,7 +146,7 @@ void utils::stateGameUpdate::phaseSetGuesses(GameContext& gameContext)
     }
 }
 
-void utils::stateGameUpdate::phaseSetTakenBoardTiles(GameContext& gameContext, PlayersMines& playersMines, PlayersGuesses& playersGuesses)
+void phaseSetTakenBoardTiles(GameContext& gameContext, state::PlayersMines& playersMines, state::PlayersGuesses& playersGuesses)
 {
     for (auto& player : gameContext.players)
     {
@@ -156,10 +165,10 @@ void utils::stateGameUpdate::phaseSetTakenBoardTiles(GameContext& gameContext, P
     }
 }
 
-int utils::stateGameUpdate::phaseCheckCollisions(GameContext& gameContext,
-    PlayersMines const& playersMines,
-    PlayersGuesses const& playersGuesses,
-    PlayersToRemove& playersToRemove)
+int phaseCheckCollisions(GameContext& gameContext,
+    state::PlayersMines const& playersMines,
+    state::PlayersGuesses const& playersGuesses,
+    state::PlayersToRemove& playersToRemove)
 {
     unsigned int roundHits = 0;
     for (auto const& guess : playersGuesses)
@@ -184,7 +193,7 @@ int utils::stateGameUpdate::phaseCheckCollisions(GameContext& gameContext,
     return roundHits;
 }
 
-bool utils::stateGameUpdate::phaseCheckGameState(GameContext& gameContext, int roundHits, std::vector<Player> const& playersToRemove)
+bool phaseCheckGameState(GameContext& gameContext, int roundHits, std::vector<Player> const& playersToRemove)
 {
     if (roundHits == 0)
 
@@ -210,7 +219,7 @@ bool utils::stateGameUpdate::phaseCheckGameState(GameContext& gameContext, int r
             console::output::println("Game Ended: Draw");
             return true;
         }
-        else if (!utils::stateGameUpdate::areEnoughTilesToPlay(gameContext))
+        else if (!stateGameUpdate::areEnoughTilesToPlay(gameContext))
         {
             console::output::println("Not enough tiles to play");
             console::output::println("Game Ended: Draw");
@@ -220,45 +229,5 @@ bool utils::stateGameUpdate::phaseCheckGameState(GameContext& gameContext, int r
     }
     return false;
 }
-} // namespace game::utils::stateGameUpdate
-
-namespace game
-{
-    using namespace utils::stateGameUpdate;
-
-    std::unique_ptr<State> StateGameUpdate::execute(GameContext& gameContext)
-    {
-        bool hasGameEnded = false;
-        unsigned int roundCount = 1;
-        int roundHits = -1;
-        PlayersMines playersMines;
-        PlayersGuesses playersGuesses;
-        PlayersToRemove playersToRemove;
-
-        if (phaseCheckGameState(gameContext, roundHits, playersToRemove))
-        {
-            return std::make_unique<StateMainMenu>();
-        }
-
-        console::output::println("[GAME STARTED]");
-        while (!hasGameEnded)
-        {
-            console::output::println("[Round ", roundCount, ']');
-            
-            phaseSetMines(gameContext);
-            phaseSetGuesses(gameContext);
-            phaseSetTakenBoardTiles(gameContext, playersMines, playersGuesses);
-            roundHits = phaseCheckCollisions(gameContext, playersMines, playersGuesses, playersToRemove);
-            hasGameEnded = phaseCheckGameState(gameContext, roundHits, playersToRemove);
-
-            console::input::pressEnterToContinue();
-
-            playersMines.clear();
-            playersGuesses.clear();
-            playersToRemove.clear();
-            roundHits = 0;
-            roundCount++;
-        }
-        return std::make_unique<StateMainMenu>();
-    }
-} // namespace game
+} // namespace stateGameUpdate
+}

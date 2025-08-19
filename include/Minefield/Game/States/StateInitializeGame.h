@@ -1,19 +1,10 @@
 #pragma once
-#include "State.h"
+#include <Minefield/Game/State.h>
 
-namespace game
+namespace game::stateInitializeGame
 {
-    class StateInitializeGame : public State
-    {
-        public:
-            std::unique_ptr<State> execute(GameContext& gameContext) override;
-    };
-
-    namespace utils::stateInitializeGame
-    {
-        Board createBoard();
-        unsigned int getMinesPerPlayer();
-        unsigned int getValidatedIntFromRange(std::string const& inputMsg, unsigned int min, unsigned int max);
-        std::vector<game::Player> createPlayers(unsigned int minesPerPlayer);
-    }
-}
+Board createBoard();
+unsigned int getMinesPerPlayer();
+unsigned int getValidatedIntFromRange(std::string const& inputMsg, unsigned int min, unsigned int max);
+std::vector<game::Player> createPlayers(unsigned int minesPerPlayer);
+} // namespace game::stateInitializeGame

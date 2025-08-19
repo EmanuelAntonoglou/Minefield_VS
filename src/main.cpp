@@ -1,17 +1,17 @@
 #include <memory>
 #include <Minefield/Math/Math.h>
-#include <Minefield/Game/States/StateMainMenu.h>
+#include <Minefield/Game/State.h>
+#include <iostream>
 
 int main()
 {
     math::initializeRandomSeed();
     game::GameContext gameContext;
-    std::unique_ptr<game::State> currentState = std::make_unique<game::StateMainMenu>();
-
-    while (currentState)
+    
+    do
     {
-        currentState = currentState->execute(gameContext);
-    }
+        gameContext.currentState = game::state::stateMainMenuUpdate(gameContext);
+    } while (gameContext.currentState.updateFunction != nullptr);
 
     return 0;
 }

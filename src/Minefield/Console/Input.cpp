@@ -1,38 +1,18 @@
 #include <iostream>
 #include <Minefield/Console/Input.h>
-#include <Minefield/Console/Output.h>
 #include <limits>
+#include <windows.h>
 
-namespace console
+namespace console::input
 {
-    namespace input
-    {
-        char readChar()
-        {
-            char input = ' ';
-            std::cin.get(input);
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            return input;
-        }
+void pressAnyKeyToContinue()
+{
+    console::output::print("> Press any key to continue ");
 
-        std::string readString()
-        {
-            std::string input;
-            std::getline(std::cin, input);
-            return input;
-        }
+    #ifdef _WIN32
+        _getwch();
+    #endif
 
-        int readInt()
-        {
-            int input = std::stoul(readString());
-            return input;
-        }
-
-        void pressEnterToContinue()
-        {
-            console::output::print("> Press enter to continue ");
-            readString();
-            console::output::clearBuffer();
-        }
-    }
+    console::output::clearBuffer();
 }
+} // namespace console::input

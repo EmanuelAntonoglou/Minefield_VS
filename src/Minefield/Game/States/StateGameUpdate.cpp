@@ -34,7 +34,7 @@ NextState execute(GameContext& gameContext)
         roundHits = gameUpdate::phaseCheckCollisions(gameContext, playersMines, playersGuesses, playersToRemove);
         hasGameEnded = gameUpdate::phaseCheckGameState(gameContext, roundHits, playersToRemove);
 
-        console::input::pressEnterToContinue();
+        console::input::pressAnyKeyToContinue();
 
         playersMines.clear();
         playersGuesses.clear();
@@ -116,8 +116,7 @@ std::vector<Coordinate> getPlayerCoordinatesInput(std::string const& playerName,
     while (!inputValidated)
     {
         gameContext.board.print();
-        console::output::print("> ", playerName, "'s " + coordinateType, " (", coordinatesToValidate, " Left): ");
-        inputStr = console::input::readString();
+        inputStr = console::input::readInput<std::string>(playerName, "'s " + coordinateType, " (", coordinatesToValidate, " Left): ");
         coordinates = parseCoordinates(inputStr);
         console::output::clearBuffer();
         inputValidated = state::gameUpdate::validateCoordinates(coordinates, coordinateType, coordinatesToValidate, gameContext);
@@ -146,7 +145,7 @@ void phaseSetMines(GameContext& gameContext)
         }
         player.minesCoordinates = minesCoordinates;
 
-        console::input::pressEnterToContinue();
+        console::input::pressAnyKeyToContinue();
     }
 }
 
@@ -173,7 +172,7 @@ void phaseSetGuesses(GameContext& gameContext)
         }
         player.guessCoordinates = guessesCoordinates;
 
-        console::input::pressEnterToContinue();
+        console::input::pressAnyKeyToContinue();
     }
 }
 

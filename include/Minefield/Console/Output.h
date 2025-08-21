@@ -2,35 +2,33 @@
 
 #include <string>
 #include <iostream>
+#include <sstream>
 
-namespace console
+namespace console::output
 {
-    namespace output
-    {
-        void clearBuffer();
+void clearBuffer();
 
-        template<typename T>
-        void singlePrint(const T& msg)
-        {
-            std::cout << msg;
-        }
-
-        template<typename... Types>
-        void print(Types... Args)
-        {
-            (singlePrint(Args), ...);
-        }
-
-        void print(const std::string &msg, int w);
-
-        template<typename... Types>
-        void println(Types... Args)
-        {
-            if constexpr (sizeof...(Args) > 0) 
-            {
-                (singlePrint(Args), ...);
-            }
-            std::cout << std::endl;
-        }
-    }
+template <typename T>
+void singlePrint(T const& msg)
+{
+    std::cout << msg;
 }
+
+template <typename... Types>
+void print(Types... Args)
+{
+    (singlePrint(Args), ...);
+}
+
+void print(std::string const& msg, int w);
+
+template <typename... Types>
+void println(Types... Args)
+{
+    if constexpr (sizeof...(Args) > 0)
+    {
+        (singlePrint(Args), ...);
+    }
+    std::cout << '\n';
+}
+} // namespace console::output

@@ -15,7 +15,7 @@ TileType const* getTile(Coordinate const& tileCoordinate, TileMatrix const& matr
     {
         return nullptr;
     }
-    return &matrix[tileCoordinate.x][tileCoordinate.y].tileType;
+    return &matrix[tileCoordinate.x][tileCoordinate.y];
 }
 } // namespace game::utils::board
 
@@ -31,7 +31,7 @@ void Board::changeTileType(Coordinate const& tileCoordinate, TileType const& til
 {
     if (isValidCoordinate(tileCoordinate, mMatrix, mBoardDimensions))
     {
-        mMatrix[tileCoordinate.x][tileCoordinate.y].tileType = tileType;
+        mMatrix[tileCoordinate.y][tileCoordinate.x] = tileType;
     }
 }
 
@@ -58,7 +58,7 @@ void Board::print() const
 
         for (unsigned int y = 0; y < mMatrix[x].size(); y++)
         {
-            TileType tile = mMatrix[x][y].tileType;
+            TileType tile = mMatrix[x][y];
             std::string tileStr(1, static_cast<char>(tile));
             console::output::print(tileStr, 2);
             console::output::print();
@@ -67,19 +67,20 @@ void Board::print() const
     }
 }
 
-std::vector<Tile> Board::getTilesOfType(TileType const& tileType) const
+std::vector<Coordinate> Board::getCoordinatesOfTileType(TileType const& tileType) const
 {
-    std::vector<Tile> tilesOfType;
-    for (auto const& row : mMatrix)
+    std::vector<Coordinate> coordinatesOfTileType;
+
+    for (unsigned int y = 0; y < mMatrix.size(); y++)
     {
-        for (auto const& tile : row)
+        for (unsigned int x = 0; x < mMatrix[0].size(); x++)
         {
-            if (tile.tileType == tileType)
+            if (mMatrix[y][x] == tileType)
             {
-                tilesOfType.push_back(tile);
+                coordinatesOfTileType.emplace_back(y, x);
             }
         }
     }
-    return tilesOfType;
+    return coordinatesOfTileType;
 }
 } // namespace game

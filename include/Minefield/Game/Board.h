@@ -21,20 +21,9 @@ enum class TileType : char
     Taken = 'x'
 };
 
-struct Tile
-{
-    Tile() = default;
-    Tile(TileType const& tileType, Coordinate const& coordinate)
-    : tileType(tileType)
-    , coordinate(coordinate) {};
-
-    TileType tileType;
-    Coordinate coordinate;
-};
-
 namespace utils::board
 {
-using TileMatrix = std::vector<std::vector<Tile>>;
+using TileMatrix = std::vector<std::vector<TileType>>;
 bool isValidCoordinate(Coordinate const& tileCoordinate, TileMatrix const& matrix, BoardDimensions const& boardDimensions);
 TileType const* getTile(Coordinate const& tileCoordinate, TileMatrix const& matrix, BoardDimensions const& boardDimensions);
 } // namespace utils::board
@@ -55,7 +44,7 @@ public:
     }
     void print() const;
     void changeTileType(Coordinate const& tileCoordinate, TileType const& tileType);
-    std::vector<Tile> getTilesOfType(TileType const& tileType) const;
+    std::vector<Coordinate> getCoordinatesOfTileType(TileType const& tileType) const;
 
 private:
     BoardDimensions mBoardDimensions;

@@ -56,12 +56,12 @@ Board createBoard()
     unsigned int heightValue = initializeGame::getValidatedIntFromRange("Board Height: ", kMinAxisSize, kMaxAxisSize);
     unsigned int widthValue = initializeGame::getValidatedIntFromRange("Board Width: ", kMinAxisSize, kMaxAxisSize);
 
-    game::utils::board::TileMatrix mMatrix{heightValue, std::vector<Tile>(widthValue)};
+    game::utils::board::TileMatrix mMatrix{heightValue, std::vector<TileType>(widthValue)};
     for (unsigned int i = 0; i < heightValue; i++)
     {
         for (unsigned int j = 0; j < widthValue; j++)
         {
-            mMatrix[i][j] = Tile{TileType::Empty, Coordinate{i, j}};
+            mMatrix[i][j] = TileType::Empty;
         }
     }
 
@@ -108,7 +108,7 @@ std::vector<Player> createPlayers(unsigned int minesPerPlayer)
                 console::output::println("Invalid input, please try again.");
             }
         }
-        players.emplace_back(Player{PlayerData(name, minesPerPlayer, isPlayerAI)});
+        players.emplace_back(PlayerData(name, minesPerPlayer, isPlayerAI));
 
         console::output::println();
     }

@@ -13,11 +13,11 @@ std::vector<Coordinate> parseCoordinates(std::string const& input)
 
     while (iss >> pair)
     {
-        size_t comma_pos = pair.find(',');
-        if (comma_pos != std::string::npos)
+        size_t commaPos = pair.find(',');
+        if (commaPos != std::string::npos)
         {
-            int x = std::stoi(pair.substr(0, comma_pos));
-            int y = std::stoi(pair.substr(comma_pos + 1));
+            int x = std::stoi(pair.substr(0, commaPos));
+            int y = std::stoi(pair.substr(commaPos + 1));
             coordinates.emplace_back(x - 1, y - 1);
         }
     }

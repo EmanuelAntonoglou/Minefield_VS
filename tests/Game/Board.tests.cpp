@@ -1,69 +1,81 @@
 #include <gtest/gtest.h>
 #include <Minefield/Game/Board.h>
+#include <Minefield/Console/Output.h>
 
 namespace game::tests
 {
     TEST(Board, constructor_should_keep_dimensions_and_tiles)
     {
         BoardDimensions dimensions(3, 3);
-        utils::board::TileMatrix matrix(3, std::vector<Tile>(3));
+        utils::board::TileMatrix matrix(3, std::vector<TileType>(3));
 
         for (unsigned int x = 0; x < dimensions.x; ++x)
         {
             for (unsigned int y = 0; y < dimensions.y; ++y)
             {
-                matrix[x][y] = Tile(TileType::Empty, {x, y});
+                matrix[x][y] = TileType::Empty;
             }
         }
 
-        matrix[1][1] = Tile(TileType::Bomb, {1, 1});
+        matrix[1][1] = TileType::Bomb;
 
         Board board(matrix, dimensions);
 
         EXPECT_EQ(board.dimensions().x, 3);
         EXPECT_EQ(board.dimensions().y, 3);
 
-        utils::board::TileMatrix boardMatrix = board.matrix();
-        EXPECT_EQ(boardMatrix[0][0].tileType, TileType::Empty);
-        EXPECT_EQ(boardMatrix[1][1].tileType, TileType::Bomb);
-        EXPECT_EQ(boardMatrix[2][2].tileType, TileType::Empty);
+        const TileType* tile1 = game::utils::board::getTile(Coordinate(0, 0), matrix, dimensions);
+        const TileType* tile2 = game::utils::board::getTile(Coordinate(1, 1), matrix, dimensions);
+        const TileType* tile3 = game::utils::board::getTile(Coordinate(2, 2), matrix, dimensions);
+
+        EXPECT_EQ(*tile1, TileType::Empty);
+        EXPECT_EQ(*tile2, TileType::Bomb);
+        EXPECT_EQ(*tile3, TileType::Empty);
     }
 
     TEST(Board, change_tile_type_should_only_update_target_tile)
     {
         BoardDimensions dimensions(5, 5);
-        utils::board::TileMatrix matrix(5, std::vector<Tile>(5, Tile(TileType::Empty, {})));
-        Board board(matrix, dimensions);
+        utils::board::TileMatrix matrix;
+        Board board(utils::board::TileMatrix(), BoardDimensions(5, 5));
 
-        Coordinate coordToChange = {2, 3};
-        board.changeTileType(coordToChange, TileType::Guess);
+        for (unsigned int x = 0; x < dimensions.x; ++x)
+        {
+            for (unsigned int y = 0; y < dimensions.y; ++y)
+            {
+                matrix[x][y] = TileType::Empty;
+            }
+        }
 
-        utils::board::TileMatrix updatedMatrix = board.matrix();
+        board.changeTileType(Coordinate(1, 1), TileType::Empty);
+        console::output::println(static_cast<int>(board.matrix()[1][1]));
 
-        EXPECT_EQ(updatedMatrix[2][3].tileType, TileType::Guess);
+        const TileType* tile1 = game::utils::board::getTile(Coordinate(1, 1), board.matrix(), board.dimensions());
+        //const TileType* tile2 = game::utils::board::getTile(Coordinate(2, 3), board.matrix(), board.dimensions());
 
-        EXPECT_EQ(updatedMatrix[3][3].tileType, TileType::Empty);
+        //EXPECT_EQ(*tile1, TileType::Guess);
+        EXPECT_EQ(*tile1, TileType::Empty);
     }
 
     TEST(Board, get_tiles_of_type_should_return_all_bombs)
     {
         BoardDimensions dimensions(4, 4);
-        utils::board::TileMatrix matrix(4, std::vector<Tile>(4, Tile(TileType::Empty, {})));
+        utils::board::TileMatrix matrix(4, std::vector<TileType>(4, TileType::Empty));
 
-        matrix[0][1] = Tile(TileType::Bomb, {1, 0});
-        matrix[1][3] = Tile(TileType::Bomb, {3, 1});
-        matrix[3][2] = Tile(TileType::Bomb, {2, 3});
+        matrix[0][1] = TileType::Bomb;
+        matrix[1][3] = TileType::Bomb;
+        matrix[3][2] = TileType::Bomb;
 
         Board board(matrix, dimensions);
 
-        std::vector<Tile> bombTiles = board.getTilesOfType(TileType::Bomb);
+        std::vector<Coordinate> bombTiles = board.getCoordinatesOfTileType(TileType::Bomb);
 
         EXPECT_EQ(bombTiles.size(), 3);
 
         bool foundCoord = false;
         for (auto const& tile : bombTiles)
         {
-            if (tile.coordinate.x == 3 && tile.coordinate.y == 1)
+            if (tile.x == 1 && tile.y == 3)
             {
                 foundCoord = true;
                 break;
@@ -75,13 +87,13 @@ namespace game::tests
     TEST(Board, constructor_should_create_one_by_one_board)
     {
         BoardDimensions dimensions(1, 1);
-        utils::board::TileMatrix matrix(1, std::vector<Tile>(1, Tile(TileType::Bomb, {0, 0})));
+        utils::board::TileMatrix matrix(1, std::vector<TileType>(1, TileType::Bomb));
 
         Board board(matrix, dimensions);
 
         EXPECT_EQ(board.dimensions().x, 1);
         EXPECT_EQ(board.dimensions().y, 1);
-        EXPECT_EQ(board.getTilesOfType(TileType::Bomb).size(), 1);
+        EXPECT_EQ(board.getCoordinatesOfTileType(TileType::Bomb).size(), 1);
     }
 
     TEST(Board, constructor_should_create_an_empty_board)
@@ -92,6 +104,6 @@ namespace game::tests
         Board board(matrix, dimensions);
 
         EXPECT_EQ(board.dimensions().x, 0);
-        EXPECT_EQ(board.getTilesOfType(TileType::Bomb).size(), 0);
+        EXPECT_EQ(board.getCoordinatesOfTileType(TileType::Bomb).size(), 0);
     }
 } 

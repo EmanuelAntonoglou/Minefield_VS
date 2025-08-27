@@ -12,7 +12,7 @@ std::vector<Coordinate> getPlayerCoordinatesInput(std::string const& playerName,
 void phaseSetMines(GameContext& gameContext);
 void phaseSetGuesses(GameContext& gameContext);
 void phaseSetTakenBoardTiles(GameContext& gameContext, PlayersMines& playersMines, PlayersGuesses& playersGuesses);
-int phaseCheckCollisions(GameContext& gameContext, PlayersMines const& playersMines, PlayersGuesses const& playersGuesses, PlayersToRemove& playersToRemove);
-bool phaseCheckGameState(GameContext& gameContext, int roundHits, std::vector<Player> const& playersToRemove);
+unsigned int phaseCheckCollisions(GameContext& gameContext, PlayersMines const& playersMines, PlayersGuesses const& playersGuesses, PlayersToRemove& playersToRemove);
+bool phaseCheckGameState(GameContext& gameContext, unsigned int roundHits, std::vector<Player> const& playersToRemove);
 
 } // namespace game::state::gameUpdate

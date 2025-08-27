@@ -13,7 +13,7 @@ NextState execute(GameContext& gameContext)
 {
     bool hasGameEnded = false;
     unsigned int roundCount = 1;
-    int roundHits = -1;
+    unsigned int roundHits = 0;
     PlayersMines playersMines;
     PlayersGuesses playersGuesses;
     PlayersToRemove playersToRemove;
@@ -39,7 +39,6 @@ NextState execute(GameContext& gameContext)
         playersMines.clear();
         playersGuesses.clear();
         playersToRemove.clear();
-        roundHits = 0;
         roundCount++;
     }
 
@@ -48,7 +47,7 @@ NextState execute(GameContext& gameContext)
 
 bool areEnoughTilesToPlay(GameContext const& gameContext)
 {
-    unsigned int avaliableTiles = gameContext.board.getTilesOfType(TileType::Empty).size();
+    unsigned int avaliableTiles = gameContext.board.getCoordinatesOfTileType(TileType::Empty).size();
     unsigned int playersQuantity = gameContext.players.size();
     unsigned int guessesforNextRound = calculateGuessesAverage(gameContext);
     return (avaliableTiles > (playersQuantity * guessesforNextRound));
@@ -118,7 +117,6 @@ std::vector<Coordinate> getPlayerCoordinatesInput(std::string const& playerName,
         gameContext.board.print();
         inputStr = console::input::readInput<std::string>(playerName, "'s " + coordinateType, " (", coordinatesToValidate, " Left): ");
         coordinates = parseCoordinates(inputStr);
-        console::output::clearBuffer();
         inputValidated = state::gameUpdate::validateCoordinates(coordinates, coordinateType, coordinatesToValidate, gameContext);
     }
     return coordinates;
@@ -132,14 +130,16 @@ void phaseSetMines(GameContext& gameContext)
         if (!player.data.isAI())
         {
             minesCoordinates = state::gameUpdate::getPlayerCoordinatesInput(player.data.name(), "mines", player.data.minesLeft(), gameContext);
+            console::output::println(minesCoordinates[0].x, ',', minesCoordinates[0].y);
         }
         else
         {
-            std::vector<Tile> tiles = gameContext.board.getTilesOfType(TileType::Empty);
+            std::vector<Coordinate> tiles = gameContext.board.getCoordinatesOfTileType(TileType::Empty);
             for (unsigned int i = 0; i < player.data.minesLeft(); i++)
             {
-                unsigned int randomNumber = math::getRandomNumber(0, tiles.size() - 1);
-                minesCoordinates.emplace_back(tiles[randomNumber].coordinate);
+                unsigned int randomNumber = math::getRandomNumber(0, static_cast<int>(tiles.size() - 1));
+                minesCoordinates.emplace_back(tiles[randomNumber]);
+                console::output::println(minesCoordinates[0].x, ',', minesCoordinates[0].y);
             }
             console::output::println(player.data.name(), " has sets its mines");
         }
@@ -162,11 +162,11 @@ void phaseSetGuesses(GameContext& gameContext)
         }
         else
         {
-            std::vector<Tile> tiles = gameContext.board.getTilesOfType(TileType::Empty);
+            std::vector<Coordinate> tiles = gameContext.board.getCoordinatesOfTileType(TileType::Empty);
             for (unsigned int i = 0; i < guessesAvr; i++)
             {
-                unsigned int randomNumber = math::getRandomNumber(0, tiles.size() - 1);
-                guessesCoordinates.emplace_back(tiles[randomNumber].coordinate);
+                unsigned int randomNumber = math::getRandomNumber(0, static_cast<int>(tiles.size() - 1));
+                guessesCoordinates.emplace_back(tiles[randomNumber]);
             }
             console::output::println(player.data.name(), " has sets its guesses");
         }
@@ -195,7 +195,7 @@ void phaseSetTakenBoardTiles(GameContext& gameContext, PlayersMines& playersMine
     }
 }
 
-int phaseCheckCollisions(GameContext& gameContext, PlayersMines const& playersMines, PlayersGuesses const& playersGuesses, PlayersToRemove& playersToRemove)
+unsigned int phaseCheckCollisions(GameContext& gameContext, PlayersMines const& playersMines, PlayersGuesses const& playersGuesses, PlayersToRemove& playersToRemove)
 {
     unsigned int roundHits = 0;
     for (auto const& guess : playersGuesses)
@@ -204,8 +204,7 @@ int phaseCheckCollisions(GameContext& gameContext, PlayersMines const& playersMi
         {
             if (guess.second == mine.second)
             {
-                console::output::println(
-                    guess.first->data.name(), " hit ", mine.first->data.name(), "'s mine at ", (mine.second.x + 1), ',', (mine.second.y + 1));
+                console::output::println(guess.first->data.name(), " hit ", mine.first->data.name(), "'s mine at ", (mine.second.x + 1), ',', (mine.second.y + 1));
                 gameContext.board.changeTileType(Coordinate{mine.second.x, mine.second.y}, TileType::Bomb);
                 roundHits++;
 
@@ -220,7 +219,7 @@ int phaseCheckCollisions(GameContext& gameContext, PlayersMines const& playersMi
     return roundHits;
 }
 
-bool phaseCheckGameState(GameContext& gameContext, int roundHits, std::vector<Player> const& playersToRemove)
+bool phaseCheckGameState(GameContext& gameContext, unsigned int roundHits, std::vector<Player> const& playersToRemove)
 {
     if (roundHits == 0)
 

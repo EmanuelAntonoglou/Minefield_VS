@@ -17,7 +17,14 @@ void singlePrint(T const& msg)
 template <typename... Types>
 void print(Types... Args)
 {
-    (singlePrint(Args), ...);
+    if constexpr (sizeof...(Args) > 0)
+    {
+        (singlePrint(Args), ...);
+    }
+    else
+    {
+        singlePrint(' ');
+    }
 }
 
 void print(std::string const& msg, int w);

@@ -58,6 +58,17 @@ namespace game::tests
 
         EXPECT_EQ(result, expected);
     }
+
+    TEST(Coordinate, parse_coordinates_should_handle_whitespace_within_pairs)
+    {
+        std::string const input = "2,  2   9 ,1";
+        std::vector<Coordinate> const expected = {Coordinate(1, 1), Coordinate(8, 0)};
+
+        std::vector<Coordinate> const result = parseCoordinates(input);
+
+        EXPECT_EQ(result, expected);
+    } // test failed
+
     TEST(Coordinate, parse_coordinates_should_ignore_malformed_pairs)
     {
         std::string const input = " 1,1 river 3,4 plate 5,5 ";
